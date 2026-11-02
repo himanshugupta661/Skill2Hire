@@ -69,10 +69,9 @@ pytest tests/
 All 19 automated tests cover authentication, public endpoints, matching algorithms, verification transitions, and application lifecycles.
 
 ### 4. Launching the Server
-```bash
-python run.py
+```open the website 
 ```
-Open **[http://127.0.0.1:5001](http://127.0.0.1:5001)** in your browser.
+Open **[https://skill2hire-z9xa.onrender.com](https://skill2hire-z9xa.onrender.com)** in your browser.
 
 ---
 
