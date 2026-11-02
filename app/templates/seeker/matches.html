@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block title %}AI Smart Matches{% endblock %}
+{% block content %}
+<div class="bg-navy text-white py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <span class="badge bg-teal text-white px-3 py-1 rounded-pill mb-2"><i class="bi bi-cpu me-1"></i> AI Matchmaking Engine</span>
+                <h2 class="fw-bold mb-1">Tailored Matches for You</h2>
+                <p class="text-light opacity-80 mb-0">Multimodal scoring computed against your skills, experience, and career preferences.</p>
+            </div>
+            <div>
+                <a href="{{ url_for('seeker.profile') }}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="bi bi-sliders me-1"></i> Adjust Match Preferences
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Filter bar -->
+    <div class="card p-3 border-0 shadow-sm rounded-4 mb-4">
+        <form method="GET" action="{{ url_for('seeker.matches') }}" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <input type="text" name="industry" value="{{ request.args.get('industry', '') }}" class="form-control" placeholder="Filter by industry (e.g. IT, Cloud, Healthcare)...">
+            </div>
+            <div class="col-md-4">
+                <select name="min_score" class="form-select">
+                    <option value="0" {% if request.args.get('min_score') == '0' %}selected{% endif %}>All Match Scores (&ge; 0%)</option>
+                    <option value="50" {% if request.args.get('min_score') == '50' %}selected{% endif %}>Fair Matches (&ge; 50%)</option>
+                    <option value="70" {% if request.args.get('min_score') == '70' %}selected{% endif %}>High Matches (&ge; 70%)</option>
+                    <option value="85" {% if request.args.get('min_score') == '85' %}selected{% endif %}>Exceptional Matches (&ge; 85%)</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100 rounded-pill"><i class="bi bi-filter me-1"></i> Filter Matches</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Matches List -->
+    <div class="vstack gap-4">
+        {% for item in ranked %}
+        {% set job = item.job %}
+        {% set m = item.match %}
+        <div class="card border-0 shadow-sm rounded-4 hover-lift p-4">
+            <div class="row align-items-center g-4">
+                <!-- Match Score Meter -->
+                <div class="col-md-2 text-center border-end-md">
+                    <div class="display-6 fw-bold 
+                        {% if m.score >= 80 %}text-success
+                        {% elif m.score >= 60 %}text-primary
+                        {% elif m.score >= 40 %}text-warning
+                        {% else %}text-muted{% endif %}">
+                        {{ m.score|round(0)|int }}%
+                    </div>
+                    <div class="small fw-semibold text-muted text-uppercase tracking-wider">AI Compatibility</div>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar {% if m.score >= 80 %}bg-success{% elif m.score >= 60 %}bg-primary{% else %}bg-warning{% endif %}" style="width: {{ m.score }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Job Details -->
+                <div class="col-md-7">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h4 class="fw-bold text-navy mb-0">
+                            <a href="{{ url_for('public.job_details', job_id=job.id) }}" class="text-decoration-none text-navy">
+                                {{ job.job_title }}
+                            </a>
+                        </h4>
+                        {% if job.employer and job.employer.is_verified %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small" title="Verified Employer">
+                            <i class="bi bi-patch-check-fill me-1"></i> Verified
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-3 text-muted small mb-2">
+                        <span><i class="bi bi-building me-1"></i>{{ job.company_name }}</span>
+                        <span><i class="bi bi-geo-alt me-1"></i>{{ job.location or 'India' }} ({{ job.work_mode|capitalize if job.work_mode else 'Any' }})</span>
+                        {% if job.salary_min or job.salary_max %}
+                        <span class="text-success fw-semibold"><i class="bi bi-currency-rupee me-1"></i>{{ job.salary_min }} - {{ job.salary_max }} LPA</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Skills Comparison -->
+                    <div class="d-flex flex-wrap gap-1 align-items-center mb-2">
+                        <span class="small text-muted fw-semibold me-1">Matching:</span>
+                        {% for sk in m.matching_skills[:5] %}
+                        <span class="badge bg-success-subtle text-success rounded-pill small"><i class="bi bi-check me-1"></i>{{ sk }}</span>
+                        {% else %}
+                        <span class="text-muted small">None directly matching</span>
+                        {% endfor %}
+                    </div>
+
+                    {% if m.missing_skills %}
+                    <div class="d-flex flex-wrap gap-1 align-items-center">
+                        <span class="small text-muted fw-semibold me-1">To Learn:</span>
+                        {% for sk in m.missing_skills[:3] %}
+                        <span class="badge bg-danger-subtle text-danger rounded-pill small">+ {{ sk }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-md-3 text-md-end">
+                    <div class="d-flex flex-md-column gap-2 justify-content-end">
+                        <a href="{{ url_for('seeker.apply', job_id=job.id) }}" class="btn btn-primary rounded-pill px-4">
+                            Apply Now
+                        </a>
+                        <a href="{{ url_for('public.job_details', job_id=job.id) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-stars text-muted display-4 mb-2"></i>
+            <h5 class="text-muted">No high-probability matches found</h5>
+            <p class="text-muted small">Try broadening your target skills or lowering the match threshold.</p>
+            <a href="{{ url_for('seeker.profile') }}" class="btn btn-outline-primary btn-sm rounded-pill px-4">Update Profile Skills</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Match pagination info -->
+    {% if total > per_page %}
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <span class="text-muted small">Showing {{ ranked|length }} of {{ total }} AI matches</span>
+        <div class="d-flex gap-2">
+            {% if page > 1 %}
+            <a href="{{ url_for('seeker.matches', page=page-1, industry=request.args.get('industry', ''), min_score=request.args.get('min_score', '0')) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">Previous</a>
+            {% endif %}
+            {% if (page * per_page) < total %}
+            <a href="{{ url_for('seeker.matches', page=page+1, industry=request.args.get('industry', ''), min_score=request.args.get('min_score', '0')) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

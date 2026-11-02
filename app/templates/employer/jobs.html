@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}Manage Job Postings{% endblock %}
+{% block content %}
+<div class="bg-navy text-white py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h2 class="fw-bold mb-1">Job Postings</h2>
+                <p class="text-light opacity-80 mb-0">Oversee active, draft, and closed positions published under {{ employer.company_name }}.</p>
+            </div>
+            <div>
+                <a href="{{ url_for('employer.new_job') }}" class="btn btn-teal text-white rounded-pill px-4">
+                    <i class="bi bi-plus-lg me-1"></i> Post New Job
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Filter status -->
+    <div class="card p-3 border-0 shadow-sm rounded-4 mb-4">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="text-muted small fw-semibold me-2"><i class="bi bi-funnel me-1"></i>Filter by Status:</span>
+            <a href="{{ url_for('employer.jobs') }}" class="btn btn-sm {{ 'btn-navy' if not status_filter else 'btn-outline-secondary' }} rounded-pill px-3">All</a>
+            {% for st in statuses %}
+            <a href="{{ url_for('employer.jobs', status=st) }}" class="btn btn-sm {{ 'btn-navy' if status_filter == st else 'btn-outline-secondary' }} rounded-pill px-3">
+                {{ st|capitalize }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Jobs Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Job Title</th>
+                        <th>Location & Mode</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in jobs %}
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="fw-bold text-navy">
+                                <a href="{{ url_for('public.job_details', job_id=job.id) }}" class="text-decoration-none text-navy">
+                                    {{ job.job_title }}
+                                </a>
+                            </div>
+                            <div class="text-muted small">
+                                {% if job.salary_min or job.salary_max %}
+                                ₹{{ job.salary_min }} - {{ job.salary_max }} LPA &bull;
+                                {% endif %}
+                                {{ job.job_type or 'Full-time' }}
+                            </div>
+                        </td>
+                        <td class="text-muted small">
+                            <i class="bi bi-geo-alt me-1"></i>{{ job.location or 'India' }} ({{ job.work_mode|capitalize if job.work_mode else 'Any' }})
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if job.job_status == 'active' %}bg-success-subtle text-success
+                                {% elif job.job_status == 'draft' %}bg-secondary-subtle text-secondary
+                                {% else %}bg-dark-subtle text-dark{% endif %} rounded-pill px-3 py-1">
+                                {{ job.job_status|capitalize }}
+                            </span>
+                        </td>
+                        <td class="text-muted small">
+                            {{ job.created_at.strftime('%d %b %Y') if job.created_at else '' }}
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{{ url_for('employer.applicants', job_id=job.id) }}" class="btn btn-sm btn-primary rounded-pill px-3">
+                                    <i class="bi bi-people me-1"></i> Applicants
+                                </a>
+                                <a href="{{ url_for('employer.edit_job', job_id=job.id) }}" class="btn btn-sm btn-outline-secondary rounded-pill">
+                                    Edit
+                                </a>
+                                {% if job.job_status == 'active' %}
+                                <form method="POST" action="{{ url_for('employer.close_job', job_id=job.id) }}" onsubmit="return confirm('Close this job posting?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">Close</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="bi bi-briefcase text-muted display-4 mb-2"></i>
+                            <h5 class="text-muted">No jobs posted matching criteria</h5>
+                            <p class="text-muted small">Publish a new role to start collecting AI-matched applicants.</p>
+                            <a href="{{ url_for('employer.new_job') }}" class="btn btn-primary btn-sm rounded-pill px-4">Post a Job</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if pagination and pagination.pages > 1 %}
+    <div class="mt-4 d-flex justify-content-center">
+        {% include 'components/pagination.html' %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

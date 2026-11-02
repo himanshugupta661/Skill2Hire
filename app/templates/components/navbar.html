@@ -1,0 +1,62 @@
+<!-- Navbar Component -->
+<nav class="navbar navbar-expand-lg navbar-light sticky-top" id="mainNav">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('public.index') }}">
+            <div class="brand-icon">
+                <i class="bi bi-briefcase-fill text-white"></i>
+            </div>
+            <span class="brand-text">SKILL<span class="text-accent">2HIRE</span></span>
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto gap-1">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('public.jobs') }}"><i class="bi bi-search me-1"></i>Find Jobs</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('public.companies') }}"><i class="bi bi-building me-1"></i>Companies</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('public.how_it_works') }}"><i class="bi bi-info-circle me-1"></i>How It Works</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('public.about') }}"><i class="bi bi-people me-1"></i>About</a></li>
+            </ul>
+            <ul class="navbar-nav gap-2 align-items-center">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.is_seeker %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('seeker.dashboard') }}"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('seeker.matches') }}"><i class="bi bi-stars me-1"></i>Matches</a></li>
+                    {% elif current_user.is_employer %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('employer.dashboard') }}"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+                    {% elif current_user.is_admin %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-shield-check me-1"></i>Admin</a></li>
+                    {% endif %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#" data-bs-toggle="dropdown">
+                            <div class="user-avatar-sm">{{ current_user.full_name[0].upper() }}</div>
+                            <span class="d-none d-md-inline">{{ current_user.full_name.split()[0] }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0">
+                            <li><span class="dropdown-item-text text-muted small">{{ current_user.email }}</span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% if current_user.is_seeker %}
+                            <li><a class="dropdown-item" href="{{ url_for('seeker.profile') }}"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('seeker.applications') }}"><i class="bi bi-file-earmark-text me-2"></i>Applications</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('seeker.saved_jobs') }}"><i class="bi bi-bookmark me-2"></i>Saved Jobs</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('seeker.resume') }}"><i class="bi bi-file-person me-2"></i>Resume</a></li>
+                            {% elif current_user.is_employer %}
+                            <li><a class="dropdown-item" href="{{ url_for('employer.profile') }}"><i class="bi bi-building me-2"></i>Company Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('employer.jobs') }}"><i class="bi bi-briefcase me-2"></i>Manage Jobs</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('employer.verification') }}"><i class="bi bi-patch-check me-2"></i>Verification</a></li>
+                            {% elif current_user.is_admin %}
+                            <li><a class="dropdown-item" href="{{ url_for('admin.users') }}"><i class="bi bi-people me-2"></i>Manage Users</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.verification_requests') }}"><i class="bi bi-patch-check me-2"></i>Verification</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
+                    <li class="nav-item"><a class="btn btn-primary btn-sm px-3" href="{{ url_for('auth.register') }}">Register Free</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

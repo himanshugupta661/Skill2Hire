@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}Dataset Processing & Pipeline Monitor{% endblock %}
+{% block content %}
+<div class="bg-navy text-white py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <a href="{{ url_for('admin.dashboard') }}" class="text-light small text-decoration-none mb-1 d-inline-block">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                </a>
+                <h2 class="fw-bold mb-0">Dataset Pipeline & Data Quality Hub</h2>
+                <p class="text-light opacity-80 small mt-1">Real-time health telemetry for dataset ingestion, NLP skill extraction, and employer verification sync.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Pipeline Metrics -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card p-3 border-0 shadow-sm rounded-4 text-center">
+                <div class="text-muted small fw-semibold">Dataset Ingested Jobs</div>
+                <div class="fs-2 fw-bold text-teal mt-1">{{ dataset_job_count }}</div>
+                <div class="small text-muted">Aggregated benchmark roles</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 border-0 shadow-sm rounded-4 text-center">
+                <div class="text-muted small fw-semibold">Employer Direct Jobs</div>
+                <div class="fs-2 fw-bold text-navy mt-1">{{ employer_job_count }}</div>
+                <div class="small text-success"><i class="bi bi-patch-check me-1"></i>100% verified direct postings</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 border-0 shadow-sm rounded-4 text-center">
+                <div class="text-muted small fw-semibold">Total Catalog Records</div>
+                <div class="fs-2 fw-bold text-navy mt-1">{{ dataset_job_count + employer_job_count }}</div>
+                <div class="small text-primary">Indexed for TF-IDF & Vector Search</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 border-0 shadow-sm rounded-4 text-center">
+                <div class="text-muted small fw-semibold">Pipeline Health Status</div>
+                <div class="fs-4 fw-bold text-success mt-2">
+                    <i class="bi bi-check-circle-fill me-1"></i> Operational
+                </div>
+                <div class="small text-muted">ETL & NLP Parsing Active</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Section -->
+    <div class="row g-4">
+        <!-- Quality Report -->
+        <div class="col-lg-6">
+            <div class="card p-4 border-0 shadow-sm rounded-4 h-100">
+                <h5 class="fw-bold text-navy mb-3"><i class="bi bi-bar-chart-steps text-teal me-2"></i>Data Cleaning & Normalization</h5>
+                {% if quality_report %}
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted">Total Raw Records Processed</td>
+                                <td class="fw-bold text-end">{{ quality_report.get('total_raw_records', 0) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Duplicate Records Pruned</td>
+                                <td class="fw-bold text-end text-danger">{{ quality_report.get('duplicates_removed', 0) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Normalized Salary Records</td>
+                                <td class="fw-bold text-end text-success">{{ quality_report.get('salaries_normalized', 0) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Skills Vectorized & Parsed</td>
+                                <td class="fw-bold text-end text-primary">{{ quality_report.get('skills_extracted', 0) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Synthesized Missing Fields</td>
+                                <td class="fw-bold text-end text-info">{{ quality_report.get('fields_imputed', 0) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-3 bg-light rounded-3 text-muted small">
+                    Pipeline quality report generated upon completion of automated batch ingestion.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Verification Report -->
+        <div class="col-lg-6">
+            <div class="card p-4 border-0 shadow-sm rounded-4 h-100">
+                <h5 class="fw-bold text-navy mb-3"><i class="bi bi-shield-check text-success me-2"></i>Entity Verification Sync</h5>
+                {% if verification_report %}
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted">Corporate Entities Scanned</td>
+                                <td class="fw-bold text-end">{{ verification_report.get('companies_scanned', 0) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">MCA / CIN Registered</td>
+                                <td class="fw-bold text-end text-success">{{ verification_report.get('cin_verified', 0) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">GSTIN Authenticated</td>
+                                <td class="fw-bold text-end text-success">{{ verification_report.get('gst_verified', 0) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Domain & Office Matched</td>
+                                <td class="fw-bold text-end text-teal">{{ verification_report.get('domain_matched', 0) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-3 bg-light rounded-3 text-muted small">
+                    Automated entity cross-referencing audit in continuous synchronization.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

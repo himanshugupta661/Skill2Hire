@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}User Management{% endblock %}
+{% block content %}
+<div class="bg-navy text-white py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <a href="{{ url_for('admin.dashboard') }}" class="text-light small text-decoration-none mb-1 d-inline-block">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                </a>
+                <h2 class="fw-bold mb-0">Platform User Directory</h2>
+                <p class="text-light opacity-80 small mt-1">Manage seeker, employer, and administrator credentials and access statuses.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Filter bar -->
+    <div class="card p-3 border-0 shadow-sm rounded-4 mb-4">
+        <form method="GET" action="{{ url_for('admin.users') }}" class="row g-2 align-items-center">
+            <div class="col-md-6">
+                <input type="text" name="q" value="{{ search or '' }}" class="form-control" placeholder="Search by name or email address...">
+            </div>
+            <div class="col-md-4">
+                <select name="role" class="form-select">
+                    <option value="">All Roles</option>
+                    {% for r in roles %}
+                    <option value="{{ r }}" {% if role_filter == r %}selected{% endif %}>{{ r|capitalize }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i> Filter</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">User</th>
+                        <th>Role</th>
+                        <th>Account Status</th>
+                        <th>Joined</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="fw-bold text-navy">{{ u.full_name }}</div>
+                            <div class="text-muted small">{{ u.email }}</div>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if u.role == 'admin' %}bg-danger
+                                {% elif u.role == 'employer' %}bg-primary
+                                {% else %}bg-teal text-white{% endif %} rounded-pill px-3">
+                                {{ u.role|capitalize }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if u.account_status == 'active' %}bg-success-subtle text-success
+                                {% else %}bg-danger-subtle text-danger{% endif %} rounded-pill px-3 py-1">
+                                {{ u.account_status|capitalize }}
+                            </span>
+                        </td>
+                        <td class="text-muted small">
+                            {{ u.created_at.strftime('%d %b %Y') if u.created_at else '' }}
+                        </td>
+                        <td class="text-end pe-4">
+                            {% if u.id != current_user.id %}
+                            <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=u.id) }}" class="d-inline" onsubmit="return confirm('Change status for this account?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                {% if u.account_status == 'active' %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">Suspend</button>
+                                {% else %}
+                                <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3">Reactivate</button>
+                                {% endif %}
+                            </form>
+                            {% else %}
+                            <span class="badge bg-light text-muted border">Current Admin</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">No users found matching query.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if pagination and pagination.pages > 1 %}
+    <div class="mt-4 d-flex justify-content-center">
+        {% include 'components/pagination.html' %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

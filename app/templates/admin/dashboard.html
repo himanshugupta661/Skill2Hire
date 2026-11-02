@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% block title %}Admin Control Center{% endblock %}
+{% block content %}
+<div class="bg-navy text-white py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <span class="badge bg-danger text-white px-3 py-1 rounded-pill mb-2"><i class="bi bi-shield-lock-fill me-1"></i> SFI Administration</span>
+                <h2 class="fw-bold mb-1">Platform Control & Analytics</h2>
+                <p class="text-light opacity-80 mb-0">System metrics, fraud detection radar, employer verification queues, and pipeline health.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('admin.verification_requests') }}" class="btn btn-warning rounded-pill px-3 fw-semibold">
+                    <i class="bi bi-shield-check me-1"></i> Audit Queue ({{ stats.pending_verifications }})
+                </a>
+                <a href="{{ url_for('admin.dataset_status') }}" class="btn btn-outline-light rounded-pill px-3">
+                    <i class="bi bi-database me-1"></i> Dataset Pipeline
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Stat Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card p-3 border-0 shadow-sm rounded-4 text-center">
+                <div class="text-muted small fw-semibold">Total Users</div>
+                <div class="fs-2 fw-bold text-navy mt-1">{{ stats.total_users }}</div>
+                <div class="small text-muted">{{ stats.seekers_count }} seekers &bull; {{ stats.employers_count }} employers</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card p-3 border-0 shadow-sm rounded-4 text-center">
+                <div class="text-muted small fw-semibold">Total Job Listings</div>
+                <div class="fs-2 fw-bold text-navy mt-1">{{ stats.total_jobs }}</div>
+                <div class="small text-teal"><i class="bi bi-check-circle me-1"></i>{{ stats.active_jobs }} active</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card p-3 border-0 shadow-sm rounded-4 text-center">
+                <div class="text-muted small fw-semibold">Total Applications</div>
+                <div class="fs-2 fw-bold text-navy mt-1">{{ stats.total_applications }}</div>
+                <div class="small text-primary"><i class="bi bi-send me-1"></i>Candidates applied</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card p-3 border-0 shadow-sm rounded-4 text-center">
+                <div class="text-muted small fw-semibold">Pending Audits & Fraud</div>
+                <div class="fs-2 fw-bold text-danger mt-1">{{ stats.pending_verifications + stats.pending_fraud_reports }}</div>
+                <div class="small text-danger">{{ stats.pending_fraud_reports }} fraud alerts</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Charts -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card p-4 border-0 shadow-sm rounded-4 h-100">
+                <h5 class="fw-bold text-navy mb-3"><i class="bi bi-bar-chart-fill text-teal me-2"></i>Jobs by Domain</h5>
+                <canvas id="categoryChart" style="max-height: 260px;"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card p-4 border-0 shadow-sm rounded-4 h-100">
+                <h5 class="fw-bold text-navy mb-3"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Applications Status Funnel</h5>
+                <canvas id="appStatusChart" style="max-height: 260px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Management Lists -->
+    <div class="row g-4">
+        <!-- Recent Jobs -->
+        <div class="col-lg-6">
+            <div class="card p-4 border-0 shadow-sm rounded-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-navy mb-0"><i class="bi bi-briefcase text-teal me-2"></i>Recent Postings</h5>
+                    <a href="{{ url_for('admin.jobs') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">View All</a>
+                </div>
+                <div class="vstack gap-2">
+                    {% for j in recent_jobs %}
+                    <div class="p-2 border rounded-3 bg-white d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="{{ url_for('public.job_details', job_id=j.id) }}" class="fw-bold text-navy text-decoration-none small">
+                                {{ j.job_title }}
+                            </a>
+                            <div class="text-muted" style="font-size: 0.75rem;">
+                                {{ j.company_name }} &bull; {{ j.location or 'India' }}
+                            </div>
+                        </div>
+                        <span class="badge bg-light text-dark border small">{{ j.job_status|capitalize }}</span>
+                    </div>
+                    {% else %}
+                    <p class="text-muted small">No jobs registered yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Applications -->
+        <div class="col-lg-6">
+            <div class="card p-4 border-0 shadow-sm rounded-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-navy mb-0"><i class="bi bi-send text-primary me-2"></i>Recent Submissions</h5>
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">View Users</a>
+                </div>
+                <div class="vstack gap-2">
+                    {% for a in recent_apps %}
+                    <div class="p-2 border rounded-3 bg-white d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold text-navy small">{{ a.applicant.full_name if a.applicant else 'Candidate' }}</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">
+                                Applied for {{ a.job.job_title if a.job else 'Job' }}
+                            </div>
+                        </div>
+                        <span class="badge bg-light-primary text-primary small">{{ a.application_status|replace('_', ' ')|capitalize }}</span>
+                    </div>
+                    {% else %}
+                    <p class="text-muted small">No applications registered yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Category Chart
+    const catData = {{ category_chart|tojson }};
+    const ctxCat = document.getElementById('categoryChart').getContext('2d');
+    new Chart(ctxCat, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(catData),
+            datasets: [{
+                label: 'Active Listings',
+                data: Object.values(catData),
+                backgroundColor: 'rgba(20, 184, 166, 0.85)',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+    });
+
+    // Application Status Chart
+    const appData = {{ app_status_chart|tojson }};
+    const ctxApp = document.getElementById('appStatusChart').getContext('2d');
+    new Chart(ctxApp, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(appData).map(k => k.replace('_', ' ').toUpperCase()),
+            datasets: [{
+                data: Object.values(appData),
+                backgroundColor: [
+                    '#64748b', '#0ea5e9', '#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#1e293b'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'right' } }
+        }
+    });
+});
+</script>
+{% endblock %}

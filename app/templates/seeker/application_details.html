@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}Application #{{ application.id }} Details{% endblock %}
+{% block content %}
+<div class="bg-navy text-white py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <a href="{{ url_for('seeker.applications') }}" class="text-light small text-decoration-none mb-1 d-inline-block">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Applications
+                </a>
+                <h2 class="fw-bold mb-0">{{ application.job.job_title if application.job else 'Job Details' }}</h2>
+                <div class="text-light opacity-80 small mt-1">
+                    <i class="bi bi-building me-1"></i> {{ application.job.company_name if application.job else 'N/A' }} &bull; Applied on {{ application.submitted_at.strftime('%d %B %Y') if application.submitted_at else 'N/A' }}
+                </div>
+            </div>
+            <div>
+                <span class="badge 
+                    {% if application.application_status == 'submitted' %}bg-secondary
+                    {% elif application.application_status == 'under_review' %}bg-info text-dark
+                    {% elif application.application_status == 'shortlisted' %}bg-primary
+                    {% elif application.application_status == 'interview_scheduled' %}bg-warning text-dark
+                    {% elif application.application_status == 'offered' %}bg-success
+                    {% elif application.application_status == 'rejected' %}bg-danger
+                    {% else %}bg-dark{% endif %} px-3 py-2 fs-6 rounded-pill">
+                    {{ application.application_status|replace('_', ' ')|capitalize }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <!-- Progression Stepper -->
+            <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+                <h5 class="fw-bold text-navy mb-4"><i class="bi bi-diagram-3 text-teal me-2"></i>Status Progression</h5>
+                <div class="stepper-horizontal d-flex justify-content-between position-relative">
+                    {% set steps = ['submitted', 'under_review', 'shortlisted', 'interview_scheduled', 'offered'] %}
+                    {% for step in steps %}
+                    <div class="text-center position-relative z-1">
+                        <div class="step-circle mx-auto mb-2 rounded-circle d-flex align-items-center justify-content-center
+                            {% if application.application_status == step %}bg-teal text-white fw-bold shadow
+                            {% elif application.application_status in ['shortlisted', 'interview_scheduled', 'offered'] and step == 'submitted' %}bg-success text-white
+                            {% elif application.application_status in ['interview_scheduled', 'offered'] and step in ['submitted', 'under_review'] %}bg-success text-white
+                            {% elif application.application_status == 'offered' and step in ['submitted', 'under_review', 'shortlisted', 'interview_scheduled'] %}bg-success text-white
+                            {% else %}bg-light text-muted border{% endif %}" style="width: 40px; height: 40px;">
+                            <i class="bi bi-check2"></i>
+                        </div>
+                        <div class="small fw-semibold text-dark">{{ step|replace('_', ' ')|capitalize }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Cover Letter -->
+            {% if application.cover_letter %}
+            <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+                <h5 class="fw-bold text-navy mb-3"><i class="bi bi-envelope-paper text-teal me-2"></i>Cover Letter / Note</h5>
+                <div class="p-3 bg-light rounded-3 text-muted leading-relaxed">
+                    {{ application.cover_letter }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- AI Match Breakdown -->
+            {% if match_details %}
+            <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+                <h5 class="fw-bold text-navy mb-3"><i class="bi bi-cpu text-teal me-2"></i>AI Match Score Analysis</h5>
+                <div class="d-flex align-items-center gap-4 mb-4">
+                    <div class="match-score-badge bg-light-primary text-primary p-3 rounded-4 text-center" style="min-width: 120px;">
+                        <span class="display-6 fw-bold">{{ match_details.score|round(1) }}%</span>
+                        <div class="small text-muted fw-semibold">Overall Match</div>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-navy mb-1">Algorithmic Compatibility Breakdown</h6>
+                        <p class="text-muted small mb-0">{{ match_details.explanation or 'Matched based on verified skills, experience thresholds, and industry preferences.' }}</p>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    {% if match_details.matching_skills %}
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-success-subtle border-success-subtle">
+                            <div class="fw-bold text-success mb-2"><i class="bi bi-check-circle me-1"></i> Matching Skills ({{ match_details.matching_skills|length }})</div>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for s in match_details.matching_skills %}
+                                <span class="badge bg-success rounded-pill">{{ s }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if match_details.missing_skills %}
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-danger-subtle border-danger-subtle">
+                            <div class="fw-bold text-danger mb-2"><i class="bi bi-exclamation-triangle me-1"></i> Missing / Recommended Skills</div>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for s in match_details.missing_skills %}
+                                <span class="badge bg-danger rounded-pill">{{ s }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Job Overview Card -->
+            <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+                <h5 class="fw-bold text-navy mb-3">Job Overview</h5>
+                {% if application.job %}
+                <ul class="list-unstyled vstack gap-2 small text-muted mb-3">
+                    <li><strong class="text-dark">Location:</strong> {{ application.job.location or 'India' }}</li>
+                    <li><strong class="text-dark">Work Mode:</strong> {{ application.job.work_mode|capitalize if application.job.work_mode else 'Any' }}</li>
+                    <li><strong class="text-dark">Employment Type:</strong> {{ application.job.job_type or 'Full-time' }}</li>
+                    {% if application.job.salary_min or application.job.salary_max %}
+                    <li><strong class="text-dark">Compensation:</strong> ₹{{ application.job.salary_min }} - {{ application.job.salary_max }} LPA</li>
+                    {% endif %}
+                </ul>
+                <a href="{{ url_for('public.job_details', job_id=application.job.id) }}" class="btn btn-outline-primary btn-sm w-100 rounded-pill">
+                    View Complete Job Listing
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Resume Used Card -->
+            {% if application.resume %}
+            <div class="card p-4 border-0 shadow-sm rounded-4">
+                <h5 class="fw-bold text-navy mb-2"><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Submitted Resume</h5>
+                <p class="text-muted small mb-3">{{ application.resume.filename }}</p>
+                <a href="{{ url_for('seeker.download_resume', resume_id=application.resume.id) }}" class="btn btn-outline-secondary btn-sm w-100 rounded-pill">
+                    <i class="bi bi-download me-1"></i> Download File
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}My Applications{% endblock %}
+{% block content %}
+<div class="bg-navy text-white py-4 mb-4">
+    <div class="container">
+        <h2 class="fw-bold mb-1">Application Pipeline</h2>
+        <p class="text-light opacity-80 mb-0">Track real-time candidate progression and recruiter actions across all your applied positions.</p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Status Filter tabs -->
+    <div class="card p-3 border-0 shadow-sm rounded-4 mb-4">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="text-muted small fw-semibold me-2"><i class="bi bi-funnel me-1"></i>Filter Status:</span>
+            <a href="{{ url_for('seeker.applications') }}" class="btn btn-sm {{ 'btn-navy' if not status_filter else 'btn-outline-secondary' }} rounded-pill px-3">All</a>
+            {% for st in statuses %}
+            <a href="{{ url_for('seeker.applications', status=st) }}" class="btn btn-sm {{ 'btn-navy' if status_filter == st else 'btn-outline-secondary' }} rounded-pill px-3">
+                {{ st|replace('_', ' ')|capitalize }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Applications Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Job Title & Company</th>
+                        <th>Applied On</th>
+                        <th>Match Score</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in applications %}
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="fw-bold text-navy">
+                                <a href="{{ url_for('seeker.application_detail', app_id=app.id) }}" class="text-decoration-none text-navy">
+                                    {{ app.job.job_title if app.job else 'Position Closed' }}
+                                </a>
+                            </div>
+                            <div class="text-muted small">
+                                <i class="bi bi-building me-1"></i>{{ app.job.company_name if app.job else 'N/A' }} &bull; <i class="bi bi-geo-alt me-1"></i>{{ app.job.location if app.job else 'N/A' }}
+                            </div>
+                        </td>
+                        <td class="text-muted small">
+                            {{ app.submitted_at.strftime('%d %b %Y, %I:%M %p') if app.submitted_at else 'N/A' }}
+                        </td>
+                        <td>
+                            {% if app.match_score %}
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge {{ 'bg-success' if app.match_score >= 80 else 'bg-primary' if app.match_score >= 60 else 'bg-warning text-dark' }} rounded-pill">
+                                    {{ app.match_score|round(1) }}%
+                                </span>
+                            </div>
+                            {% else %}
+                            <span class="text-muted small">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set st = app.application_status %}
+                            <span class="badge 
+                                {% if st == 'submitted' %}bg-secondary-subtle text-secondary
+                                {% elif st == 'under_review' %}bg-info-subtle text-info
+                                {% elif st == 'shortlisted' %}bg-primary-subtle text-primary
+                                {% elif st == 'interview_scheduled' %}bg-warning-subtle text-dark
+                                {% elif st == 'offered' %}bg-success-subtle text-success
+                                {% elif st == 'rejected' %}bg-danger-subtle text-danger
+                                {% elif st == 'withdrawn' %}bg-dark-subtle text-dark
+                                {% endif %} rounded-pill px-3 py-1">
+                                {{ st|replace('_', ' ')|capitalize }}
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{{ url_for('seeker.application_detail', app_id=app.id) }}" class="btn btn-sm btn-outline-primary rounded-pill">
+                                    Details
+                                </a>
+                                {% if app.application_status not in ['rejected', 'withdrawn', 'offered'] %}
+                                <form method="POST" action="{{ url_for('seeker.withdraw_app', app_id=app.id) }}" onsubmit="return confirm('Are you sure you want to withdraw this application?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">Withdraw</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="bi bi-inbox text-muted display-4 mb-2"></i>
+                            <h5 class="text-muted">No applications found</h5>
+                            <p class="text-muted small">Explore our AI recommendations and apply with confidence.</p>
+                            <a href="{{ url_for('public.jobs') }}" class="btn btn-primary btn-sm rounded-pill px-4">Browse Jobs</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if pagination and pagination.pages > 1 %}
+    <div class="mt-4 d-flex justify-content-center">
+        {% include 'components/pagination.html' %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

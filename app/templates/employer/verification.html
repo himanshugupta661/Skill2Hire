@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Enterprise Verification Center{% endblock %}
+{% block content %}
+<div class="bg-navy text-white py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <span class="badge bg-teal text-white px-3 py-1 rounded-pill mb-2"><i class="bi bi-shield-check me-1"></i> Trust & Compliance</span>
+                <h2 class="fw-bold mb-1">Enterprise Verification Center</h2>
+                <p class="text-light opacity-80 mb-0">Obtain the Verified Employer Badge to increase application response rates by over 300%.</p>
+            </div>
+            <div>
+                {% if employer.is_verified %}
+                <span class="badge bg-success px-3 py-2 rounded-pill fs-6">
+                    <i class="bi bi-patch-check-fill me-1"></i> Certified Verified Employer
+                </span>
+                {% else %}
+                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fs-6">
+                    <i class="bi bi-clock-history me-1"></i> Status: {{ employer.verification_status|capitalize }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row g-4">
+        <!-- Verification Form -->
+        <div class="col-lg-7">
+            <div class="card p-4 p-md-5 border-0 shadow-sm rounded-4">
+                <h4 class="fw-bold text-navy mb-2"><i class="bi bi-file-earmark-check text-teal me-2"></i>Submit Verification Credentials</h4>
+                <p class="text-muted small mb-4">Our compliance team cross-checks CIN, GSTIN, and company PAN against MCA & GST registries within 24-48 business hours.</p>
+
+                <form method="POST" action="{{ url_for('employer.verification') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label class="form-label small text-secondary fw-semibold">Corporate Identity Number (CIN) / Registration <span class="text-danger">*</span></label>
+                            <input type="text" name="business_registration_number" class="form-control" placeholder="e.g. U72900KA2020PTC134567" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary fw-semibold">GSTIN (15 Digits) <span class="text-danger">*</span></label>
+                            <input type="text" name="gst_number" class="form-control" placeholder="e.g. 29AABCU9603R1Z7" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary fw-semibold">Company PAN (10 Digits) <span class="text-danger">*</span></label>
+                            <input type="text" name="company_pan" class="form-control" placeholder="e.g. AABCU9603R" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small text-secondary fw-semibold">Registered Corporate Address <span class="text-danger">*</span></label>
+                            <textarea name="registered_address" class="form-control" rows="3" placeholder="Full address matching MCA incorporation certificate..." required></textarea>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold text-navy mb-3 border-top pt-4"><i class="bi bi-person-lines-fill text-teal me-2"></i>Authorized Officer Coordinates</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary fw-semibold">Contact Person Name <span class="text-danger">*</span></label>
+                            <input type="text" name="contact_person" class="form-control" value="{{ current_user.full_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary fw-semibold">Official Designation <span class="text-danger">*</span></label>
+                            <input type="text" name="contact_designation" class="form-control" placeholder="e.g. VP Human Resources / Director" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary fw-semibold">Direct Phone / Mobile <span class="text-danger">*</span></label>
+                            <input type="tel" name="contact_phone" class="form-control" placeholder="+91 98765 43210" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-secondary fw-semibold">Additional Notes / Reference Links</label>
+                            <input type="text" name="additional_info" class="form-control" placeholder="MCA portal link or company registry URL">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                        <a href="{{ url_for('employer.dashboard') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+                        <button type="submit" class="btn btn-teal text-white px-5 fw-semibold">
+                            <i class="bi bi-shield-lock me-1"></i> Submit for Audit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Verification History & Benefits -->
+        <div class="col-lg-5">
+            <!-- Benefits -->
+            <div class="card p-4 border-0 shadow-sm rounded-4 mb-4 bg-light">
+                <h5 class="fw-bold text-navy mb-3"><i class="bi bi-award text-teal me-2"></i>Why Get Verified?</h5>
+                <ul class="list-unstyled vstack gap-3 small text-muted mb-0">
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        <div><strong class="text-dark">Verified Trust Badge:</strong> Displayed prominently across all job search results and applicant feeds.</div>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        <div><strong class="text-dark">Zero Spam Flagging:</strong> Verified employers enjoy prioritized job placement and immune status from automated spam throttling.</div>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                        <div><strong class="text-dark">Higher Candidate Quality:</strong> Top job seekers filter exclusively for verified employers.</div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Audit History -->
+            <div class="card p-4 border-0 shadow-sm rounded-4">
+                <h5 class="fw-bold text-navy mb-3"><i class="bi bi-clock-history text-teal me-2"></i>Audit History</h5>
+                <div class="vstack gap-3">
+                    {% for req in requests %}
+                    <div class="p-3 border rounded-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-navy small">Request #{{ req.id }}</span>
+                            <span class="badge 
+                                {% if req.status == 'approved' %}bg-success
+                                {% elif req.status == 'rejected' %}bg-danger
+                                {% elif req.status == 'more_info' %}bg-warning text-dark
+                                {% else %}bg-secondary{% endif %} rounded-pill">
+                                {{ req.status|replace('_', ' ')|capitalize }}
+                            </span>
+                        </div>
+                        <div class="text-muted small">Submitted: {{ req.submitted_at.strftime('%d %b %Y, %I:%M %p') if req.submitted_at else 'N/A' }}</div>
+                        {% if req.review_notes %}
+                        <div class="mt-2 p-2 bg-light rounded text-muted small">
+                            <strong>Admin Feedback:</strong> {{ req.review_notes }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        No previous audit requests submitted.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

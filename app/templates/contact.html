@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Contact & Support{% endblock %}
+{% block content %}
+<section class="page-header py-5 bg-navy text-white text-center">
+    <div class="container py-4">
+        <h1 class="display-5 fw-bold mb-3">Contact SKILL2HIRE</h1>
+        <p class="lead text-light opacity-80 mx-auto" style="max-width: 600px;">
+            Have questions about employer verification, platform security, or career integration? Our support team is ready to assist.
+        </p>
+    </div>
+</section>
+
+<section class="py-5 bg-white">
+    <div class="container py-4">
+        <div class="row g-5">
+            <div class="col-lg-5">
+                <div class="p-4 rounded-4 bg-light border">
+                    <h4 class="fw-bold text-navy mb-4">Official Channels</h4>
+                    <div class="vstack gap-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-3 bg-white rounded-circle shadow-xs text-teal">
+                                <i class="bi bi-geo-alt fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-navy">Corporate HQ</h6>
+                                <p class="text-muted small mb-0">DLF Cyber City, Tower B, Sector 24, Gurugram, India</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-3 bg-white rounded-circle shadow-xs text-teal">
+                                <i class="bi bi-envelope fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-navy">Verification & Grievance</h6>
+                                <p class="text-muted small mb-0">trust@skill2hire.org | support@skill2hire.org</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-3 bg-white rounded-circle shadow-xs text-teal">
+                                <i class="bi bi-telephone fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-navy">Toll-Free Helpline</h6>
+                                <p class="text-muted small mb-0">+91 1800-419-HIRE (Mon - Sat, 9:00 - 18:00 IST)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="card p-4 p-md-5 border-0 shadow-sm rounded-4">
+                    <h3 class="fw-bold text-navy mb-2">Send us a Message</h3>
+                    <p class="text-muted small mb-4">Submit your inquiry and our grievance officer will respond within 24 business hours.</p>
+                    
+                    <form onsubmit="event.preventDefault(); alert('Thank you for contacting SKILL2HIRE. Your inquiry ticket #S2H-' + Math.floor(100000 + Math.random() * 900000) + ' has been logged.');">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-secondary small">Full Name</label>
+                                <input type="text" class="form-control" required placeholder="Aarav Sharma">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-secondary small">Email Address</label>
+                                <input type="email" class="form-control" required placeholder="aarav@example.com">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold text-secondary small">Inquiry Type</label>
+                                <select class="form-select">
+                                    <option>Employer Verification & Audit</option>
+                                    <option>Job Seeker Assistance</option>
+                                    <option>Report Fraud / Suspicious Listing</option>
+                                    <option>API / Partnership Inquiries</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold text-secondary small">Message</label>
+                                <textarea class="form-control" rows="4" required placeholder="Describe your request or grievance in detail..."></textarea>
+                            </div>
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-primary px-4 py-2">Submit Inquiry</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

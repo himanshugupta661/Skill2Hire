@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="auth-container py-5">
+    <div class="container">
+        <div class="auth-card" style="max-width:540px">
+            <div class="text-center mb-4">
+                <div class="brand-icon mx-auto mb-3" style="width:48px;height:48px;">
+                    <i class="bi bi-person-plus-fill text-white fs-4"></i>
+                </div>
+                <h2 class="fw-800">Create Your Account</h2>
+                <p class="text-muted">Join thousands of professionals on SKILL2HIRE</p>
+            </div>
+            
+            <form method="POST" action="{{ url_for('auth.register') }}" novalidate id="registerForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <!-- Account Type -->
+                <div class="mb-4">
+                    <label class="form-label fw-600">I am a...</label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <input type="radio" class="btn-check" name="role" id="role_seeker" value="seeker" 
+                                   {{ 'checked' if not role or role == 'seeker' }}>
+                            <label class="btn btn-outline-primary w-100 py-3" for="role_seeker">
+                                <i class="bi bi-person-search d-block fs-3 mb-1"></i>Job Seeker
+                            </label>
+                        </div>
+                        <div class="col-6">
+                            <input type="radio" class="btn-check" name="role" id="role_employer" value="employer"
+                                   {{ 'checked' if role == 'employer' }}>
+                            <label class="btn btn-outline-primary w-100 py-3" for="role_employer">
+                                <i class="bi bi-building d-block fs-3 mb-1"></i>Employer
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label" for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" class="form-control"
+                           placeholder="Your full name" value="{{ full_name or '' }}" required>
+                </div>
+                
+                <!-- Employer-only field -->
+                <div class="mb-3" id="companyField" style="{{ '' if role == 'employer' else 'display:none' }}">
+                    <label class="form-label" for="company_name">Company Name</label>
+                    <input type="text" id="company_name" name="company_name" class="form-control"
+                           placeholder="Your company name" value="{{ company_name or '' }}">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-control"
+                           placeholder="you@example.com" value="{{ email or '' }}" required autocomplete="email">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control"
+                           placeholder="At least 8 characters" required>
+                    <div class="form-text">Minimum 8 characters.</div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label" for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control"
+                           placeholder="Repeat your password" required>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="agree" required>
+                        <label class="form-check-label small" for="agree">
+                            I understand that this platform uses AI-assisted matching as a decision-support tool and does not guarantee employment outcomes.
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-600">
+                    <i class="bi bi-person-plus me-2"></i>Create Account
+                </button>
+            </form>
+            
+            <hr class="my-4">
+            <p class="text-center mb-0">
+                Already have an account? <a href="{{ url_for('auth.login') }}" class="fw-600">Sign In</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle company field based on role selection
+document.querySelectorAll('input[name="role"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const companyField = document.getElementById('companyField');
+        const companyInput = document.getElementById('company_name');
+        if (this.value === 'employer') {
+            companyField.style.display = '';
+            companyInput.required = true;
+        } else {
+            companyField.style.display = 'none';
+            companyInput.required = false;
+        }
+    });
+});
+
+// Password confirmation validation
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    const pwd = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm_password').value;
+    if (pwd !== confirm) {
+        e.preventDefault();
+        alert('Passwords do not match.');
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<div class="bg-navy text-white py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h2 class="fw-bold mb-1">Seeker Profile & Preferences</h2>
+                <p class="text-light opacity-80 mb-0">Keep your skills and career objectives up-to-date for optimal AI matchmaking.</p>
+            </div>
+            <div class="bg-white text-navy p-3 rounded-4 shadow-sm text-center" style="min-width: 180px;">
+                <div class="small fw-semibold text-muted">Profile Strength</div>
+                <div class="fs-4 fw-bold text-teal">{{ profile.profile_completion_pct or 0 }}%</div>
+                <div class="progress mt-1" style="height: 6px;">
+                    <div class="progress-bar bg-teal" role="progressbar" style="width: {{ profile.profile_completion_pct or 0 }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card p-4 p-md-5 border-0 shadow-sm rounded-4">
+                <form method="POST" action="{{ url_for('seeker.profile') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <h5 class="fw-bold text-navy mb-3"><i class="bi bi-person-badge text-teal me-2"></i>Professional Summary</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-secondary">Professional Headline</label>
+                            <input type="text" name="headline" class="form-control" value="{{ profile.headline or '' }}" placeholder="e.g. Senior Full-Stack Engineer | Python & React Specialist">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-secondary">Career Summary / Bio</label>
+                            <textarea name="summary" class="form-control" rows="4" placeholder="Brief summary of your professional journey, leadership experience, and primary accomplishments...">{{ profile.summary or '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold text-navy mb-3 border-top pt-4"><i class="bi bi-tools text-teal me-2"></i>Skills & Experience</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-secondary">Key Skills (Comma-separated)</label>
+                            <input type="text" name="skills" class="form-control" value="{{ profile.skills or '' }}" placeholder="Python, Django, React, Docker, PostgreSQL, AWS, Machine Learning">
+                            <div class="form-text small">Our AI Matchmaker uses these skills to compute similarity against open listings.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">Years of Experience</label>
+                            <input type="number" step="0.5" name="years_of_experience" class="form-control" value="{{ profile.years_of_experience or 0 }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">Current Location</label>
+                            <input type="text" name="current_location" class="form-control" value="{{ profile.current_location or '' }}" placeholder="e.g. Bengaluru, Karnataka">
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold text-navy mb-3 border-top pt-4"><i class="bi bi-briefcase text-teal me-2"></i>Preferences & Expectations</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">Preferred Roles</label>
+                            <input type="text" name="preferred_roles" class="form-control" value="{{ profile.preferred_roles or '' }}" placeholder="Backend Developer, Tech Lead">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">Preferred Locations</label>
+                            <input type="text" name="preferred_locations" class="form-control" value="{{ profile.preferred_locations or '' }}" placeholder="Bengaluru, Pune, Remote">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-secondary">Work Arrangement</label>
+                            <select name="preferred_work_mode" class="form-select">
+                                <option value="any" {% if profile.preferred_work_mode == 'any' %}selected{% endif %}>Any / Flexible</option>
+                                <option value="remote" {% if profile.preferred_work_mode == 'remote' %}selected{% endif %}>Remote Only</option>
+                                <option value="hybrid" {% if profile.preferred_work_mode == 'hybrid' %}selected{% endif %}>Hybrid</option>
+                                <option value="onsite" {% if profile.preferred_work_mode == 'onsite' %}selected{% endif %}>On-site Only</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-secondary">Min Expected Salary (LPA)</label>
+                            <input type="number" name="expected_salary_min" class="form-control" value="{{ profile.expected_salary_min or '' }}" placeholder="e.g. 12">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-secondary">Max Expected Salary (LPA)</label>
+                            <input type="number" name="expected_salary_max" class="form-control" value="{{ profile.expected_salary_max or '' }}" placeholder="e.g. 20">
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold text-navy mb-3 border-top pt-4"><i class="bi bi-link-45deg text-teal me-2"></i>Online Presence</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">LinkedIn Profile URL</label>
+                            <input type="url" name="linkedin_url" class="form-control" value="{{ profile.linkedin_url or '' }}" placeholder="https://linkedin.com/in/username">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-secondary">GitHub / Portfolio URL</label>
+                            <input type="url" name="github_url" class="form-control" value="{{ profile.github_url or '' }}" placeholder="https://github.com/username">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                        <a href="{{ url_for('seeker.dashboard') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check2-circle me-1"></i> Save Profile</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+                <h5 class="fw-bold text-navy mb-3"><i class="bi bi-file-earmark-person text-teal me-2"></i>Active Resumes</h5>
+                <p class="text-muted small">Upload your resume to automatically populate your profile and power our contextual vector matching.</p>
+                <a href="{{ url_for('seeker.resume') }}" class="btn btn-outline-teal w-100 rounded-pill">
+                    <i class="bi bi-cloud-arrow-up me-1"></i> Manage Resumes
+                </a>
+            </div>
+
+            <div class="card p-4 border-0 shadow-sm rounded-4">
+                <h5 class="fw-bold text-navy mb-3"><i class="bi bi-lightning-charge text-warning me-2"></i>Match Quality Tips</h5>
+                <ul class="list-unstyled vstack gap-2 small text-muted mb-0">
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Add at least 5-8 concrete technical & soft skills.</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Upload a clean PDF resume with project descriptions.</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Specify target cities and work arrangement preference.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Admin Job Management{% endblock %}
+{% block content %}
+<div class="bg-navy text-white py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <a href="{{ url_for('admin.dashboard') }}" class="text-light small text-decoration-none mb-1 d-inline-block">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                </a>
+                <h2 class="fw-bold mb-0">Platform Job Catalog & Moderation</h2>
+                <p class="text-light opacity-80 small mt-1">Review active, imported, and flagged job listings across all organizations.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Filter bar -->
+    <div class="card p-3 border-0 shadow-sm rounded-4 mb-4">
+        <form method="GET" action="{{ url_for('admin.jobs') }}" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <input type="text" name="q" value="{{ search or '' }}" class="form-control" placeholder="Search by title or company...">
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+                    <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspended</option>
+                    <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>Closed</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="source" class="form-select">
+                    <option value="">All Sources</option>
+                    <option value="employer" {% if source_filter == 'employer' %}selected{% endif %}>Employer</option>
+                    <option value="dataset" {% if source_filter == 'dataset' %}selected{% endif %}>Dataset</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i> Filter</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Jobs Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Job Title & Company</th>
+                        <th>Source</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for j in jobs %}
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="fw-bold text-navy">
+                                <a href="{{ url_for('public.job_details', job_id=j.id) }}" target="_blank" class="text-decoration-none text-navy">
+                                    {{ j.job_title }}
+                                </a>
+                            </div>
+                            <div class="text-muted small">
+                                <i class="bi bi-building me-1"></i>{{ j.company_name }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge {{ 'bg-teal text-white' if j.source_type == 'employer' else 'bg-secondary-subtle text-secondary' }} rounded-pill px-2">
+                                {{ j.source_type|capitalize }}
+                            </span>
+                        </td>
+                        <td class="text-muted small">
+                            {{ j.location or 'India' }}
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if j.job_status == 'active' %}bg-success-subtle text-success
+                                {% elif j.job_status == 'suspended' %}bg-danger-subtle text-danger
+                                {% elif j.job_status == 'draft' %}bg-secondary-subtle text-secondary
+                                {% else %}bg-dark-subtle text-dark{% endif %} rounded-pill px-3 py-1">
+                                {{ j.job_status|capitalize }}
+                            </span>
+                        </td>
+                        <td class="text-muted small">
+                            {{ j.created_at.strftime('%d %b %Y') if j.created_at else '' }}
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{{ url_for('public.job_details', job_id=j.id) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
+                                    View
+                                </a>
+                                {% if j.job_status != 'suspended' %}
+                                <form method="POST" action="{{ url_for('admin.suspend_job', job_id=j.id) }}" onsubmit="return confirm('Suspend this job posting immediately?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">Suspend</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">No jobs match your filter criteria.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if pagination and pagination.pages > 1 %}
+    <div class="mt-4 d-flex justify-content-center">
+        {% include 'components/pagination.html' %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

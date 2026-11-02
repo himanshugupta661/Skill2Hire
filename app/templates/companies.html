@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}Verified Companies{% endblock %}
+{% block content %}
+<section class="page-header py-5 bg-navy text-white">
+    <div class="container py-3">
+        <h1 class="display-6 fw-bold mb-2">Explore Verified Employers</h1>
+        <p class="lead text-light opacity-80 mb-0">Browse certified organizations with audited credentials and real career opportunities.</p>
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <!-- Search and Filter Bar -->
+        <div class="card p-3 border-0 shadow-sm rounded-4 mb-4">
+            <form method="GET" action="{{ url_for('public.companies') }}" class="row g-2 align-items-center">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="q" value="{{ search or '' }}" class="form-control border-start-0" placeholder="Search company name...">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" name="industry" value="{{ industry or '' }}" class="form-control" placeholder="Filter by industry (e.g. IT, Healthcare)...">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i> Filter</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Companies Grid -->
+        <div class="row g-4">
+            {% for emp in employers %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift p-4">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="company-logo bg-light-primary text-primary rounded-3 d-flex align-items-center justify-content-center fw-bold fs-4" style="width: 54px; height: 54px;">
+                                {{ emp.company_name[:2].upper() }}
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-navy mb-0">
+                                    <a href="{{ url_for('public.company_detail', employer_id=emp.id) }}" class="text-decoration-none text-navy">
+                                        {{ emp.company_name }}
+                                    </a>
+                                </h5>
+                                <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ emp.location or 'India' }}</span>
+                            </div>
+                        </div>
+                        {% if emp.is_verified %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small" title="Verified by SFI">
+                            <i class="bi bi-patch-check-fill me-1"></i> Verified
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <p class="text-muted small text-truncate-2 mb-3" style="min-height: 40px;">
+                        {{ emp.description or 'Innovative organization driving verified employment and excellence in ' + (emp.industry or 'industry') + '.' }}
+                    </p>
+
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        {% if emp.industry %}
+                        <span class="badge bg-secondary-subtle text-secondary rounded-pill">{{ emp.industry }}</span>
+                        {% endif %}
+                        {% if emp.company_size %}
+                        <span class="badge bg-light text-dark border rounded-pill">{{ emp.company_size }} employees</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                        <span class="text-teal fw-semibold small">
+                            <i class="bi bi-briefcase me-1"></i>{{ emp.active_jobs_count }} active {{ 'job' if emp.active_jobs_count == 1 else 'jobs' }}
+                        </span>
+                        <a href="{{ url_for('public.company_detail', employer_id=emp.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            View Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-building-x text-muted display-4 mb-3"></i>
+                <h4 class="text-muted">No verified employers found</h4>
+                <p class="text-muted small">Try adjusting your keyword or industry filter.</p>
+                <a href="{{ url_for('public.companies') }}" class="btn btn-outline-primary btn-sm">Reset Filters</a>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if pagination and pagination.pages > 1 %}
+        <div class="mt-4 d-flex justify-content-center">
+            {% include 'components/pagination.html' %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

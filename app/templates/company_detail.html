@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}{{ employer.company_name }} | Verified Profile{% endblock %}
+{% block content %}
+<section class="bg-navy text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <div class="company-logo bg-light text-navy rounded-4 d-flex align-items-center justify-content-center fw-bold display-5" style="width: 90px; height: 90px;">
+                    {{ employer.company_name[:2].upper() }}
+                </div>
+            </div>
+            <div class="col">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <h1 class="display-6 fw-bold mb-0">{{ employer.company_name }}</h1>
+                    {% if employer.is_verified %}
+                    <span class="badge bg-success px-3 py-2 rounded-pill">
+                        <i class="bi bi-patch-check-fill me-1"></i> Verified Employer
+                    </span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">
+                        <i class="bi bi-clock-history me-1"></i> Verification In Progress
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="d-flex flex-wrap gap-4 mt-2 text-light opacity-80 small">
+                    {% if employer.location %}
+                    <span><i class="bi bi-geo-alt me-1"></i> {{ employer.location }}</span>
+                    {% endif %}
+                    {% if employer.industry %}
+                    <span><i class="bi bi-tag me-1"></i> {{ employer.industry }}</span>
+                    {% endif %}
+                    {% if employer.company_size %}
+                    <span><i class="bi bi-people me-1"></i> {{ employer.company_size }} Employees</span>
+                    {% endif %}
+                    {% if employer.website %}
+                    <span><i class="bi bi-globe me-1"></i> <a href="{{ employer.website }}" target="_blank" rel="noopener" class="text-light">{{ employer.website }}</a></span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <!-- About Company -->
+                <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+                    <h4 class="fw-bold text-navy mb-3">About {{ employer.company_name }}</h4>
+                    <p class="text-muted leading-relaxed mb-0">
+                        {{ employer.description or 'No corporate overview provided yet.' }}
+                    </p>
+                </div>
+
+                <!-- Open Jobs -->
+                <div class="card p-4 border-0 shadow-sm rounded-4">
+                    <h4 class="fw-bold text-navy mb-3">Open Opportunities ({{ jobs|length }})</h4>
+                    {% if jobs %}
+                    <div class="vstack gap-3">
+                        {% for job in jobs %}
+                        <div class="p-3 border rounded-3 bg-white hover-lift">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="fw-bold text-navy mb-1">
+                                        <a href="{{ url_for('public.job_details', job_id=job.id) }}" class="text-decoration-none text-navy">
+                                            {{ job.title }}
+                                        </a>
+                                    </h5>
+                                    <div class="d-flex flex-wrap gap-3 text-muted small">
+                                        <span><i class="bi bi-geo-alt me-1"></i>{{ job.location or 'India' }}</span>
+                                        <span><i class="bi bi-briefcase me-1"></i>{{ job.job_type or 'Full-time' }}</span>
+                                        {% if job.salary_min or job.salary_max %}
+                                        <span class="text-success fw-semibold"><i class="bi bi-currency-rupee me-1"></i>{{ job.salary_min }} - {{ job.salary_max }} LPA</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('public.job_details', job_id=job.id) }}" class="btn btn-sm btn-primary px-3 rounded-pill">
+                                    View Job
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted small mb-0">No open positions currently published by this employer.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card p-4 border-0 shadow-sm rounded-4 mb-4">
+                    <h5 class="fw-bold text-navy mb-3"><i class="bi bi-shield-check text-teal me-2"></i>Trust & Verification</h5>
+                    <ul class="list-unstyled vstack gap-2 small mb-0">
+                        <li class="d-flex align-items-center justify-content-between py-1 border-bottom">
+                            <span class="text-muted">Verification Status</span>
+                            <span class="fw-semibold {{ 'text-success' if employer.is_verified else 'text-warning' }}">
+                                {{ employer.verification_status|capitalize }}
+                            </span>
+                        </li>
+                        <li class="d-flex align-items-center justify-content-between py-1 border-bottom">
+                            <span class="text-muted">Corporate Entity</span>
+                            <span class="fw-semibold text-dark">Private Limited / Enterprise</span>
+                        </li>
+                        <li class="d-flex align-items-center justify-content-between py-1 border-bottom">
+                            <span class="text-muted">Direct Recruiter</span>
+                            <span class="fw-semibold text-dark">Verified Direct HR</span>
+                        </li>
+                        <li class="d-flex align-items-center justify-content-between py-1">
+                            <span class="text-muted">Fraud Complaints</span>
+                            <span class="fw-semibold text-success">0 Unresolved</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

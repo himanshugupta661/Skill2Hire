@@ -1,0 +1,9 @@
+{
+  "total_raw_records": 10,
+  "duplicates_removed": 0,
+  "salaries_normalized": 10,
+  "skills_extracted": 73,
+  "fields_imputed": 0,
+  "valid_pct": 100.0,
+  "evaluated_at": "2026-10-29T19:17:56.855712"
+}

@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% block title %}SKILL2HIRE — Find the Right Job{% endblock %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-bg"></div>
+    <div class="container position-relative">
+        <div class="row align-items-center min-vh-75 py-5">
+            <div class="col-lg-7">
+                <div class="hero-badge mb-3">
+                    <i class="bi bi-stars me-2"></i>AI-Powered Job Matching
+                </div>
+                <h1 class="hero-title">Find the Right Job.<br><span class="text-gradient">Build Your Future.</span></h1>
+                <p class="hero-subtitle">Intelligent matching connects job seekers with verified employers using skills analysis, resume parsing, and explainable AI — built for the Indian job market.</p>
+                
+                <!-- Search Bar -->
+                <form action="{{ url_for('public.jobs') }}" method="GET" class="hero-search-form">
+                    <div class="search-container">
+                        <div class="search-field">
+                            <i class="bi bi-search search-icon"></i>
+                            <input type="text" name="q" class="search-input" placeholder="Job title, skill, or keyword..." value="">
+                        </div>
+                        <div class="search-field">
+                            <i class="bi bi-geo-alt search-icon"></i>
+                            <input type="text" name="location" class="search-input" placeholder="Location (e.g. Bangalore)">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-search">
+                            <i class="bi bi-search me-1"></i> Search Jobs
+                        </button>
+                    </div>
+                </form>
+
+                <div class="hero-ctas mt-4 d-flex gap-3 flex-wrap">
+                    <a href="{{ url_for('public.jobs') }}" class="btn btn-primary btn-lg px-4">
+                        <i class="bi bi-search me-2"></i>Find Jobs
+                    </a>
+                    <a href="{{ url_for('auth.register') }}?role=employer" class="btn btn-outline-dark btn-lg px-4">
+                        <i class="bi bi-building me-2"></i>Hire Talent
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-flex justify-content-center">
+                <div class="hero-illustration">
+                    <div class="floating-card card-1">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        <span>Verified Employer</span>
+                    </div>
+                    <div class="hero-icon-circle">
+                        <i class="bi bi-briefcase-fill"></i>
+                    </div>
+                    <div class="floating-card card-2">
+                        <i class="bi bi-stars text-warning me-2"></i>
+                        <span>87% Match Score</span>
+                    </div>
+                    <div class="floating-card card-3">
+                        <i class="bi bi-people-fill text-primary me-2"></i>
+                        <span>{{ stats.total_seekers or '0' }}+ Job Seekers</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Wave -->
+    <div class="hero-wave">
+        <svg viewBox="0 0 1200 100" preserveAspectRatio="none"><path d="M0,50 C300,100 900,0 1200,50 L1200,100 L0,100 Z" fill="white"/></svg>
+    </div>
+</section>
+
+<!-- Stats Bar -->
+<section class="stats-bar py-4 bg-white">
+    <div class="container">
+        <div class="row g-3 text-center">
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <h3 class="stat-number text-primary">{{ stats.total_jobs or '0' }}+</h3>
+                    <p class="stat-label">Active Jobs</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <h3 class="stat-number text-success">{{ stats.total_companies or '0' }}+</h3>
+                    <p class="stat-label">Companies</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <h3 class="stat-number text-warning">{{ stats.total_seekers or '0' }}+</h3>
+                    <p class="stat-label">Job Seekers</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-item">
+                    <h3 class="stat-number text-danger">{{ stats.verified_employers or '0' }}+</h3>
+                    <p class="stat-label">Verified Employers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Job Categories -->
+{% if categories %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="section-header text-center mb-5">
+            <h2 class="section-title">Explore by Industry</h2>
+            <p class="section-subtitle">Find opportunities across sectors driving India's economy</p>
+        </div>
+        <div class="row g-3">
+            {% for cat in categories[:12] %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <a href="{{ url_for('public.jobs', industry=cat.industry) }}" class="category-card d-block text-decoration-none">
+                    <div class="category-icon">
+                        <i class="bi bi-briefcase-fill"></i>
+                    </div>
+                    <h6 class="category-name">{{ cat.industry }}</h6>
+                    <span class="category-count">{{ cat.count }} jobs</span>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured Jobs -->
+{% if featured_jobs %}
+<section class="py-5">
+    <div class="container">
+        <div class="section-header d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 class="section-title">Featured Jobs</h2>
+                <p class="section-subtitle mb-0">Latest opportunities from verified and active employers</p>
+            </div>
+            <a href="{{ url_for('public.jobs') }}" class="btn btn-outline-primary">View All <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+        {% set saved_ids = [] %}
+        {% set applied_ids = [] %}
+        {% if current_user.is_authenticated and current_user.is_seeker %}
+            {% set saved_ids = current_user.saved_jobs | map(attribute='job_id') | list %}
+            {% set applied_ids = current_user.applications | map(attribute='job_id') | list %}
+        {% endif %}
+        <div class="row g-4">
+            {% for job in featured_jobs %}
+            <div class="col-md-6 col-lg-4">
+                {% include 'components/job_card.html' %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- How It Works -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="section-header text-center mb-5">
+            <h2 class="section-title">How SKILL2HIRE Works</h2>
+            <p class="section-subtitle">Four simple steps to your next opportunity</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="how-step text-center">
+                    <div class="step-number">1</div>
+                    <div class="step-icon"><i class="bi bi-person-plus-fill"></i></div>
+                    <h5>Create Profile</h5>
+                    <p class="text-muted small">Build your professional profile with skills, experience, and preferences.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="how-step text-center">
+                    <div class="step-number">2</div>
+                    <div class="step-icon"><i class="bi bi-file-earmark-arrow-up-fill"></i></div>
+                    <h5>Upload Resume</h5>
+                    <p class="text-muted small">Upload your PDF resume. Our system extracts and analyzes your skills automatically.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="how-step text-center">
+                    <div class="step-number">3</div>
+                    <div class="step-icon"><i class="bi bi-stars"></i></div>
+                    <h5>Get Matched</h5>
+                    <p class="text-muted small">Our AI engine ranks jobs by how well they match your profile with transparent explanations.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="how-step text-center">
+                    <div class="step-number">4</div>
+                    <div class="step-icon"><i class="bi bi-send-fill"></i></div>
+                    <h5>Apply & Track</h5>
+                    <p class="text-muted small">Apply with one click and track your application status in real time.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- AI Matching Explanation -->
+<section class="py-5">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="ai-explain-card">
+                    <div class="ai-score-demo">
+                        <div class="score-ring">
+                            <div class="score-value">87%</div>
+                            <div class="score-label">Match Score</div>
+                        </div>
+                        <div class="score-breakdown">
+                            <div class="score-bar-item">
+                                <span>Skills</span>
+                                <div class="score-bar"><div class="score-fill" style="width:90%"></div></div>
+                                <span>90%</span>
+                            </div>
+                            <div class="score-bar-item">
+                                <span>Experience</span>
+                                <div class="score-bar"><div class="score-fill" style="width:80%"></div></div>
+                                <span>80%</span>
+                            </div>
+                            <div class="score-bar-item">
+                                <span>Location</span>
+                                <div class="score-bar"><div class="score-fill" style="width:100%"></div></div>
+                                <span>100%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="feature-badge mb-3">
+                    <i class="bi bi-cpu me-2"></i>Explainable AI
+                </div>
+                <h2 class="section-title">Transparent Job Matching</h2>
+                <p class="text-muted">Our matching engine uses TF-IDF text analysis, skill overlap scoring, and experience compatibility — not random percentages. Every score comes with a clear explanation.</p>
+                <ul class="feature-list">
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Required skill compatibility (40%)</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Job description text similarity (25%)</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Role and title alignment (15%)</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Experience range compatibility (10%)</li>
+                    <li><i class="bi bi-check-circle-fill text-success me-2"></i>Location and work-mode fit (10%)</li>
+                </ul>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary mt-2">Get Matched Now <i class="bi bi-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Trust & Verification -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="feature-badge mb-3"><i class="bi bi-shield-check me-2"></i>Trust & Safety</div>
+                <h2 class="section-title">Verified Employers. Safer Jobs.</h2>
+                <p class="text-muted">Every employer on SKILL2HIRE undergoes a manual verification process. Verified badges are only awarded after our team reviews company information — not automatically.</p>
+                <div class="trust-cards mt-4">
+                    <div class="trust-card"><i class="bi bi-patch-check-fill text-success"></i><div><strong>Manual Verification</strong><p class="mb-0 small text-muted">Our team reviews each employer's business documentation.</p></div></div>
+                    <div class="trust-card"><i class="bi bi-flag-fill text-danger"></i><div><strong>Fraud Reporting</strong><p class="mb-0 small text-muted">Report suspicious listings. Our team investigates every report.</p></div></div>
+                    <div class="trust-card"><i class="bi bi-eye-fill text-primary"></i><div><strong>Transparent Scores</strong><p class="mb-0 small text-muted">Every match score is explained — no black-box algorithms.</p></div></div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="row g-3">
+                    <div class="col-6"><div class="stat-card text-center p-4"><h3 class="text-primary">{{ stats.verified_employers or '0' }}</h3><p class="small text-muted mb-0">Verified Employers</p></div></div>
+                    <div class="col-6"><div class="stat-card text-center p-4"><h3 class="text-success">{{ stats.total_jobs or '0' }}</h3><p class="small text-muted mb-0">Active Listings</p></div></div>
+                    <div class="col-6"><div class="stat-card text-center p-4"><h3 class="text-warning">{{ stats.total_applications or '0' }}</h3><p class="small text-muted mb-0">Applications Submitted</p></div></div>
+                    <div class="col-6"><div class="stat-card text-center p-4"><h3 class="text-danger">{{ stats.total_seekers or '0' }}</h3><p class="small text-muted mb-0">Job Seekers</p></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section py-5">
+    <div class="container text-center">
+        <h2 class="text-white mb-3">Ready to Find Your Next Role?</h2>
+        <p class="text-white-50 mb-4">Join thousands of professionals using AI-powered matching to land the right job.</p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-5">
+                <i class="bi bi-person-plus me-2"></i>Get Started Free
+            </a>
+            <a href="{{ url_for('public.jobs') }}" class="btn btn-outline-light btn-lg px-5">
+                <i class="bi bi-search me-2"></i>Browse Jobs
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

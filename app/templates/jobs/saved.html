@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Saved Jobs{% endblock %}
+{% block content %}
+<div class="bg-navy text-white py-4 mb-4">
+    <div class="container">
+        <h2 class="fw-bold mb-1">Saved Opportunities</h2>
+        <p class="text-light opacity-80 mb-0">Bookmark jobs of interest to review, compare, and apply when ready.</p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row g-4">
+        {% for s in saved_jobs %}
+        {% set job = s.job %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 hover-lift p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="badge bg-light text-navy border small mb-1">{{ job.job_type or 'Full-time' }}</span>
+                        <h5 class="fw-bold text-navy mb-0">
+                            <a href="{{ url_for('public.job_details', job_id=job.id) }}" class="text-decoration-none text-navy">
+                                {{ job.job_title }}
+                            </a>
+                        </h5>
+                        <div class="text-muted small mt-1">
+                            <i class="bi bi-building me-1"></i>{{ job.company_name }}
+                        </div>
+                    </div>
+                    {% if job.employer and job.employer.is_verified %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small" title="Verified Employer">
+                        <i class="bi bi-patch-check-fill"></i>
+                    </span>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 text-muted small mb-3">
+                    <span><i class="bi bi-geo-alt me-1"></i>{{ job.location or 'India' }}</span>
+                    {% if job.salary_min or job.salary_max %}
+                    <span class="text-success fw-semibold"><i class="bi bi-currency-rupee me-1"></i>{{ job.salary_min }} - {{ job.salary_max }} LPA</span>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex flex-wrap gap-1 mb-3">
+                    {% for sk in (job.required_skills or '').split(',')[:4] %}
+                    {% if sk.strip() %}
+                    <span class="badge bg-secondary-subtle text-secondary small">{{ sk.strip() }}</span>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                    <form method="POST" action="{{ url_for('seeker.toggle_save_job', job_id=job.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Remove from saved">
+                            <i class="bi bi-bookmark-dash me-1"></i> Remove
+                        </button>
+                    </form>
+                    <a href="{{ url_for('seeker.apply', job_id=job.id) }}" class="btn btn-sm btn-primary rounded-pill px-3">
+                        Apply Now
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-bookmark-x text-muted display-4 mb-2"></i>
+            <h5 class="text-muted">No saved jobs yet</h5>
+            <p class="text-muted small">Save interesting roles while browsing so you can quickly apply later.</p>
+            <a href="{{ url_for('public.jobs') }}" class="btn btn-primary btn-sm rounded-pill px-4">Explore Jobs</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if pagination and pagination.pages > 1 %}
+    <div class="mt-4 d-flex justify-content-center">
+        {% include 'components/pagination.html' %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

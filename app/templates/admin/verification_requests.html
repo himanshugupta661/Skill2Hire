@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Enterprise Verification Audit Queue{% endblock %}
+{% block content %}
+<div class="bg-navy text-white py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <a href="{{ url_for('admin.dashboard') }}" class="text-light small text-decoration-none mb-1 d-inline-block">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                </a>
+                <h2 class="fw-bold mb-0">Enterprise Verification Audit Queue</h2>
+                <p class="text-light opacity-80 small mt-1">Cross-check MCA/GST documents, validate corporate domain ownership, and grant verified status.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <!-- Status Filter -->
+    <div class="card p-3 border-0 shadow-sm rounded-4 mb-4">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="text-muted small fw-semibold me-2"><i class="bi bi-funnel me-1"></i>Filter Audit Queue:</span>
+            <a href="{{ url_for('admin.verification_requests', status='') }}" class="btn btn-sm {{ 'btn-navy' if not status_filter else 'btn-outline-secondary' }} rounded-pill px-3">All</a>
+            <a href="{{ url_for('admin.verification_requests', status='pending') }}" class="btn btn-sm {{ 'btn-navy' if status_filter == 'pending' else 'btn-outline-secondary' }} rounded-pill px-3">Pending</a>
+            <a href="{{ url_for('admin.verification_requests', status='approved') }}" class="btn btn-sm {{ 'btn-navy' if status_filter == 'approved' else 'btn-outline-secondary' }} rounded-pill px-3">Approved</a>
+            <a href="{{ url_for('admin.verification_requests', status='rejected') }}" class="btn btn-sm {{ 'btn-navy' if status_filter == 'rejected' else 'btn-outline-secondary' }} rounded-pill px-3">Rejected</a>
+        </div>
+    </div>
+
+    <!-- Requests list -->
+    <div class="vstack gap-4">
+        {% for req in requests %}
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                <div>
+                    <span class="badge bg-light text-navy border mb-1">Request #{{ req.id }}</span>
+                    <h4 class="fw-bold text-navy mb-0">{{ req.employer.company_name if req.employer else 'Unknown Company' }}</h4>
+                    <div class="text-muted small mt-1">
+                        Submitted: {{ req.submitted_at.strftime('%d %B %Y, %I:%M %p') if req.submitted_at else 'N/A' }}
+                    </div>
+                </div>
+                <div>
+                    <span class="badge 
+                        {% if req.verification_status == 'approved' %}bg-success
+                        {% elif req.verification_status == 'rejected' %}bg-danger
+                        {% else %}bg-warning text-dark{% endif %} rounded-pill px-3 py-2 fs-6">
+                        {{ req.verification_status|capitalize }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Credentials Grid -->
+            <div class="row g-3 p-3 bg-light rounded-3 mb-3">
+                <div class="col-md-4">
+                    <span class="small text-muted d-block">CIN / Registration No:</span>
+                    <strong class="text-dark font-monospace">{{ req.business_registration_number or 'Not provided' }}</strong>
+                </div>
+                <div class="col-md-4">
+                    <span class="small text-muted d-block">GSTIN (15 Digits):</span>
+                    <strong class="text-dark font-monospace">{{ req.gst_number or 'Not provided' }}</strong>
+                </div>
+                <div class="col-md-4">
+                    <span class="small text-muted d-block">Company PAN:</span>
+                    <strong class="text-dark font-monospace">{{ req.company_pan or 'Not provided' }}</strong>
+                </div>
+                <div class="col-12 border-top pt-2 mt-2">
+                    <span class="small text-muted d-block">Registered Corporate Address:</span>
+                    <span class="text-dark">{{ req.registered_address or 'Not provided' }}</span>
+                </div>
+            </div>
+
+            <!-- Authorized Officer Coordinates -->
+            <div class="row g-3 mb-3 text-muted small">
+                <div class="col-md-4">
+                    <strong>Contact Officer:</strong> {{ req.contact_person or 'N/A' }} ({{ req.contact_designation or 'HR' }})
+                </div>
+                <div class="col-md-4">
+                    <strong>Direct Phone:</strong> {{ req.contact_phone or 'N/A' }}
+                </div>
+                <div class="col-md-4">
+                    <strong>Website:</strong> <a href="{{ req.employer.website }}" target="_blank" rel="noopener">{{ req.employer.website }}</a>
+                </div>
+            </div>
+
+            {% if req.review_notes %}
+            <div class="alert alert-secondary py-2 small mb-3">
+                <strong>Audit Log / Notes:</strong> {{ req.review_notes }}
+            </div>
+            {% endif %}
+
+            <!-- Audit Action Buttons (if pending) -->
+            {% if req.verification_status == 'pending' %}
+            <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                <!-- Reject Form -->
+                <form method="POST" action="{{ url_for('admin.reject_request', req_id=req.id) }}" class="d-flex gap-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="text" name="reason" class="form-control form-control-sm" placeholder="Rejection reason..." required style="max-width: 200px;">
+                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Reject this verification request?');">
+                        Reject
+                    </button>
+                </form>
+
+                <!-- Approve Form -->
+                <form method="POST" action="{{ url_for('admin.approve_request', req_id=req.id) }}" class="d-flex gap-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="notes" value="Verified against MCA & GST records.">
+                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-4 fw-semibold" onclick="return confirm('Grant Verified Employer Badge to {{ req.employer.company_name }}?');">
+                        <i class="bi bi-patch-check-fill me-1"></i> Approve & Grant Badge
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="card p-5 border-0 shadow-sm rounded-4 text-center">
+            <i class="bi bi-shield-check text-muted display-4 mb-2"></i>
+            <h5 class="text-muted">Verification queue clear</h5>
+            <p class="text-muted small">No pending audit requests at this time.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if pagination and pagination.pages > 1 %}
+    <div class="mt-4 d-flex justify-content-center">
+        {% include 'components/pagination.html' %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
